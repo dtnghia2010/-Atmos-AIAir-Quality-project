@@ -11,6 +11,7 @@
 //uv gusta-s12d - analog a1
 //sharp gp2y10 - analog a0 - digital 6
 
+
 #define DHTPIN 7
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
@@ -24,10 +25,7 @@ MQ7 mq7(A_PIN, VOLTAGE);
 
 const int ledPower = 6;
 const int PMPin = A0;
-
 const int UVPin = A1;
-
-
 
 char ssid[] = "AIoT Lab VN";
 char pass[] = "AIoTLab01082023";
@@ -85,31 +83,33 @@ void loop() {
 
   float resultTemperature = dataTemperature();
   float resultHumidity = dataHumidity();
+  float resultGas = dataGasSensor(resultTemperature, resultHumidity);
+  float resultCO = dataCO();
+  float resultUV = dataUVIndex();
+  float resultPM = dataPM25();
+  // float resultDewPoint = getDewPoint(resultTemperature, resultHumidity);
+
   Serial.print("Nhiet do: ");
   Serial.println(resultTemperature);
+
   Serial.print("Do am: ");
   Serial.println(resultHumidity);
 
-  float resultGas = dataGasSensor(resultTemperature, resultHumidity);
   Serial.print("Gas: ");
   Serial.println(resultGas);
 
-  float resultCO = dataCO();
   Serial.print("CO value: ");
   Serial.println(resultCO);
 
-  float resultUV = dataUVIndex();
   Serial.print("UV: ");
   Serial.println(resultUV);
 
-  float resultPM = dataPM25();
   Serial.print("PM25: ");
   Serial.println(resultPM);
   
-  float resultDewPoint = getDewPoint(resultTemperature, resultHumidity);
-  Serial.print("Dew Point: ");
-  Serial.println(resultDewPoint);
-  Serial.println();
+  // Serial.print("Dew Point: ");
+  // Serial.println(resultDewPoint);
+  // Serial.println();
 
   // Connect or reconnect to WiFi
   if(WiFi.status() != WL_CONNECTED){
@@ -124,13 +124,19 @@ void loop() {
   }
 
   // set the fields with the values
-  ThingSpeak.setField(1, resultTemperature);
-  ThingSpeak.setField(2, resultHumidity);
-  ThingSpeak.setField(3, resultGas);
-  ThingSpeak.setField(4, resultCO);
-  ThingSpeak.setField(5, resultUV);
-  ThingSpeak.setField(6, resultPM);
-  ThingSpeak.setField(7, resultDewPoint);
+  if(!isnan(resultTemperature))
+    ThingSpeak.setField(1, resultTemperature);
+  if(!isnan(resultHumidity))
+    ThingSpeak.setField(2, resultHumidity);
+  if(!isnan(resultGas))
+    ThingSpeak.setField(3, resultGas);
+  if(!isnan(resultCO))  
+    ThingSpeak.setField(4, resultCO);
+  if(!isnan(resultUV))  
+    ThingSpeak.setField(5, resultUV);
+  if(!isnan(resultPM))  
+    ThingSpeak.setField(6, resultPM);
+  // ThingSpeak.setField(7, resultDewPoint);
 
   // set the status
   ThingSpeak.setStatus(myStatus);
@@ -219,11 +225,19 @@ float dataPM25() {
   return dustDensity;
 }
 
-float getDewPoint(float temperature, float humidity) {
-  double a = 17.271;
-  double b = 237.7;
-  double temp = (a * temperature) / (b + temperature) + log(temperature/100);
-  double Td = (b * temp) / (a - temp);
-  float TdFloat = (float)Td;
-  return TdFloat;
+// float getDewPoint(float temperature, float humidity) {
+//   double a = 17.271;
+//   double b = 237.7;
+//   double temp = (a * temperature) / (b + temperature) + log(temperature/100);
+//   double Td = (b * temp) / (a - temp);
+//   float TdFloat = (float)Td;
+//   return TdFloat;
+// }
+
+bool isAnomaly(float currentValue) {
+  if (isnan(currentValue)) {
+    Serial.println("Error: Failed to read sensor data.");
+    // Handle error, e.g., retry reading sensor data, skip this iteration, or log the error
+    return true;
+  }
 }
