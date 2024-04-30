@@ -183,57 +183,42 @@ class TestController:
             rounded_aqi_score = int(aqi_score)
             return rounded_aqi_score
         
-        file_path = 'datasets/output/data.csv'
-        try:
-            with open(file_path, 'r') as csv_file:
-                reader = csv.DictReader(csv_file)
-                data = [row for row in reader if all(row.values())]  # Skip rows with missing values
-        except FileNotFoundError:
-            return "File not found."
-
-        # Convert timestamps to datetime objects
-        timestamps = [datetime.strptime(row['Time'], '%Y-%m-%dT%H:%M:%SZ') for row in data]
-
-        # Calculate the start time for the 24-hour and 8-hour periods
+        channel_id = '2465663'  # Replace with your ThingSpeak channel ID
+        read_api_key = 'MP0MEWPWMADVCPMG'  # Replace with your ThingSpeak read API key
+        results = requests.get(f'https://api.thingspeak.com/channels/{channel_id}/feeds.csv', params={'api_key': read_api_key})
+        if results.status_code != 200:
+            return "Failed to fetch data from ThingSpeak."
+        
+        csv_data = results.text.splitlines()
+        reader = csv.DictReader(csv_data)
+        data = list(reader)
+        
+        timestamps = [datetime.strptime(row['created_at'], '%Y-%m-%d %H:%M:%S %Z') for row in data]
         current_time = max(timestamps)
         pm25_start_time = current_time - timedelta(hours=24)
         co_start_time = current_time - timedelta(hours=8)
 
-        # Filter data within the specified time frames
-        pm25_data = [float(row['PM25']) for row, ts in zip(data, timestamps) if ts >= pm25_start_time]
-        co_data = [float(row['CO']) for row, ts in zip(data, timestamps) if ts >= co_start_time]
+        pm25_data = [float(row['field6']) for row, ts in zip(data, timestamps) if ts >= pm25_start_time]
+        co_data = [float(row['field4']) for row, ts in zip(data, timestamps) if ts >= co_start_time]
 
-        # Calculate 24-hour average for PM2.5 and 8-hour average for CO
-        if pm25_data:
-            pm25_avg = sum(pm25_data) / len(pm25_data)
-        else:
-            pm25_avg = None
+        pm25_avg = sum(pm25_data) / len(pm25_data) if pm25_data else None
+        co_avg = sum(co_data) / len(co_data) if co_data else None
 
-        if co_data:
-            co_avg = sum(co_data) / len(co_data)
-        else:
-            co_avg = None
-
-        # Calculate AQI
         pm25_aqi, co_aqi = calculate_aqi(pm25_avg, co_avg)
         
-        # Determine the overall AQI based on CO if it's not None, otherwise use PM2.5
-        if co_aqi is not None:
-            overall_aqi = co_aqi
-        elif pm25_aqi is not None:
-            overall_aqi = pm25_aqi
-        else:
-            # Handle the case where both AQI values are None
+        overall_aqi = co_aqi if co_aqi is not None else pm25_aqi if pm25_aqi is not None else None
+        
+        if overall_aqi is None:
             return {'error': 'Failed to calculate AQI for both pollutants.'}
         
-        # Map the overall AQI to air quality category and AQI range
         category, aqi_range = map_aqi_range_and_category(overall_aqi, "CO" if co_aqi is not None else "PM2.5")
         aqi_score = map_aqi_score(overall_aqi)
+        
         return {
             'PM2.5 AQI': pm25_aqi, 
             'CO AQI': co_aqi, 
             'Overall AQI': overall_aqi,
             'Air Quality Category': category,
             'AQI Range': aqi_range,
-            'AQI Score:': aqi_score
+            'AQI Score': aqi_score
         }
