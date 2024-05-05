@@ -2,10 +2,10 @@ from flask import request, jsonify
 import numpy as np
 import os
 import pandas as pd
-# from sklearn.neighbors import KNeighborsRegressor
-# from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
-# from xgboost import XGBRegressor
-# from sklearn.linear_model import LinearRegression 
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from xgboost import XGBRegressor
+from sklearn.linear_model import LinearRegression 
 from prophet import Prophet
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import model_from_json
@@ -413,3 +413,1390 @@ class PredictController:
             response_data = {'error': str(e)}
 
         return jsonify(response_data)
+
+
+      #-------------------LR-------------------
+    def predictLRTemp():
+        try:
+            # GET method to fetch data
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempData = [float(feed['field1']) for feed in feeds]
+            tempTime = [feed['created_at'] for feed in feeds]
+
+            # convert to numpy array and pandas dataframe
+            arrayData = np.array(tempData)
+            arrayTime = np.array(tempTime)
+            datetimeTemp = pd.to_datetime(arrayTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': arrayData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_lr = LinearRegression()
+            model_lr.fit(X, y)
+
+            # get the last timestamp in the dataset
+            last_timestamp = dataset.index[-1]
+
+            # Generate timestamps for the next hour with 5-minute intervals
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+
+            # Reshape timestamps to be used as features for prediction
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Use the trained model to predict temperature for the next hour
+            predicted_counts = model_lr.predict(next_hour_features[['time']])
+
+            # Round the predictions to 8 decimal places
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Prepare JSON response with forecast and forecast dates
+            forecast_dates = next_hour_timestamps.strftime('%Y-%m-%d %H:%M:%S').tolist()
+            response_data = {'forecast_dates': forecast_dates, 'forecast_values': arrayForecast.tolist()}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+    
+    def predictLRHumi():
+        try:
+            # GET method to fetch data
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempData = [float(feed['field2']) for feed in feeds]
+            tempTime = [feed['created_at'] for feed in feeds]
+
+            # convert to numpy array and pandas dataframe
+            arrayData = np.array(tempData)
+            arrayTime = np.array(tempTime)
+            datetimeTemp = pd.to_datetime(arrayTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': arrayData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_lr = LinearRegression()
+            model_lr.fit(X, y)
+
+            # get the last timestamp in the dataset
+            last_timestamp = dataset.index[-1]
+
+            # Generate timestamps for the next hour with 5-minute intervals
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+
+            # Reshape timestamps to be used as features for prediction
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Use the trained model to predict temperature for the next hour
+            predicted_counts = model_lr.predict(next_hour_features[['time']])
+
+            # Round the predictions to 8 decimal places
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Prepare JSON response with forecast and forecast dates
+            forecast_dates = next_hour_timestamps.strftime('%Y-%m-%d %H:%M:%S').tolist()
+            response_data = {'forecast_dates': forecast_dates, 'forecast_values': arrayForecast.tolist()}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+    
+    def predictLRCO2():
+        try:
+            # GET method to fetch data
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempData = [float(feed['field3']) for feed in feeds]
+            tempTime = [feed['created_at'] for feed in feeds]
+
+            # convert to numpy array and pandas dataframe
+            arrayData = np.array(tempData)
+            arrayTime = np.array(tempTime)
+            datetimeTemp = pd.to_datetime(arrayTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': arrayData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_lr = LinearRegression()
+            model_lr.fit(X, y)
+
+            # get the last timestamp in the dataset
+            last_timestamp = dataset.index[-1]
+
+            # Generate timestamps for the next hour with 5-minute intervals
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+
+            # Reshape timestamps to be used as features for prediction
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Use the trained model to predict temperature for the next hour
+            predicted_counts = model_lr.predict(next_hour_features[['time']])
+
+            # Round the predictions to 8 decimal places
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Prepare JSON response with forecast and forecast dates
+            forecast_dates = next_hour_timestamps.strftime('%Y-%m-%d %H:%M:%S').tolist()
+            response_data = {'forecast_dates': forecast_dates, 'forecast_values': arrayForecast.tolist()}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+    
+    def predictLRCO():
+        try:
+            # GET method to fetch data
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempData = [float(feed['field4']) for feed in feeds]
+            tempTime = [feed['created_at'] for feed in feeds]
+
+            # convert to numpy array and pandas dataframe
+            arrayData = np.array(tempData)
+            arrayTime = np.array(tempTime)
+            datetimeTemp = pd.to_datetime(arrayTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': arrayData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_lr = LinearRegression()
+            model_lr.fit(X, y)
+
+            # get the last timestamp in the dataset
+            last_timestamp = dataset.index[-1]
+
+            # Generate timestamps for the next hour with 5-minute intervals
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+
+            # Reshape timestamps to be used as features for prediction
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Use the trained model to predict temperature for the next hour
+            predicted_counts = model_lr.predict(next_hour_features[['time']])
+
+            # Round the predictions to 8 decimal places
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Prepare JSON response with forecast and forecast dates
+            forecast_dates = next_hour_timestamps.strftime('%Y-%m-%d %H:%M:%S').tolist()
+            response_data = {'forecast_dates': forecast_dates, 'forecast_values': arrayForecast.tolist()}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+    
+    def predictLRUV():
+        try:
+            # GET method to fetch data
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempData = [float(feed['field5']) for feed in feeds]
+            tempTime = [feed['created_at'] for feed in feeds]
+
+            # convert to numpy array and pandas dataframe
+            arrayData = np.array(tempData)
+            arrayTime = np.array(tempTime)
+            datetimeTemp = pd.to_datetime(arrayTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': arrayData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_lr = LinearRegression()
+            model_lr.fit(X, y)
+
+            # get the last timestamp in the dataset
+            last_timestamp = dataset.index[-1]
+
+            # Generate timestamps for the next hour with 5-minute intervals
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+
+            # Reshape timestamps to be used as features for prediction
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Use the trained model to predict temperature for the next hour
+            predicted_counts = model_lr.predict(next_hour_features[['time']])
+
+            # Round the predictions to 8 decimal places
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Prepare JSON response with forecast and forecast dates
+            forecast_dates = next_hour_timestamps.strftime('%Y-%m-%d %H:%M:%S').tolist()
+            response_data = {'forecast_dates': forecast_dates, 'forecast_values': arrayForecast.tolist()}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+    
+    def predictLRPM():
+        try:
+            # GET method to fetch data
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempData = [float(feed['field6']) for feed in feeds]
+            tempTime = [feed['created_at'] for feed in feeds]
+
+            # convert to numpy array and pandas dataframe
+            arrayData = np.array(tempData)
+            arrayTime = np.array(tempTime)
+            datetimeTemp = pd.to_datetime(arrayTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': arrayData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_lr = LinearRegression()
+            model_lr.fit(X, y)
+
+            # get the last timestamp in the dataset
+            last_timestamp = dataset.index[-1]
+
+            # Generate timestamps for the next hour with 5-minute intervals
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+
+            # Reshape timestamps to be used as features for prediction
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Use the trained model to predict temperature for the next hour
+            predicted_counts = model_lr.predict(next_hour_features[['time']])
+
+            # Round the predictions to 8 decimal places
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Prepare JSON response with forecast and forecast dates
+            forecast_dates = next_hour_timestamps.strftime('%Y-%m-%d %H:%M:%S').tolist()
+            response_data = {'forecast_dates': forecast_dates, 'forecast_values': arrayForecast.tolist()}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+    
+
+    def predictGBTemp():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Extract data from the response
+            data = response.json()
+            tempData = [float(entry['field1']) for entry in data['feeds']]
+            tempTime = [entry['created_at'] for entry in data['feeds']]
+
+            # Convert time to datetime
+            datetimeTemp = pd.to_datetime(tempTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_gb = GradientBoostingRegressor(**p_gb)
+            model_gb.fit(X, y)
+
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            predicted_counts = model_gb.predict(next_hour_features)
+
+            # Round predictions
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Convert arrays to lists
+            forecast_dates = next_hour_timestamps.astype(str).tolist()
+            forecast_values = arrayForecast.tolist()
+
+            # Create JSON response
+            response_data = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_data)
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    def predictGBHumi():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Extract data from the response
+            data = response.json()
+            tempData = [float(entry['field2']) for entry in data['feeds']]
+            tempTime = [entry['created_at'] for entry in data['feeds']]
+
+            # Convert time to datetime
+            datetimeTemp = pd.to_datetime(tempTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_gb = GradientBoostingRegressor(**p_gb)
+            model_gb.fit(X, y)
+
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            predicted_counts = model_gb.predict(next_hour_features)
+
+            # Round predictions
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Convert arrays to lists
+            forecast_dates = next_hour_timestamps.astype(str).tolist()
+            forecast_values = arrayForecast.tolist()
+
+            # Create JSON response
+            response_data = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_data)
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    def predictGBCO2():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Extract data from the response
+            data = response.json()
+            tempData = [float(entry['field3']) for entry in data['feeds']]
+            tempTime = [entry['created_at'] for entry in data['feeds']]
+
+            # Convert time to datetime
+            datetimeTemp = pd.to_datetime(tempTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_gb = GradientBoostingRegressor(**p_gb)
+            model_gb.fit(X, y)
+
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            predicted_counts = model_gb.predict(next_hour_features)
+
+            # Round predictions
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Convert arrays to lists
+            forecast_dates = next_hour_timestamps.astype(str).tolist()
+            forecast_values = arrayForecast.tolist()
+
+            # Create JSON response
+            response_data = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_data)
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    def predictGBCO():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Extract data from the response
+            data = response.json()
+            tempData = [float(entry['field4']) for entry in data['feeds']]
+            tempTime = [entry['created_at'] for entry in data['feeds']]
+
+            # Convert time to datetime
+            datetimeTemp = pd.to_datetime(tempTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_gb = GradientBoostingRegressor(**p_gb)
+            model_gb.fit(X, y)
+
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            predicted_counts = model_gb.predict(next_hour_features)
+
+            # Round predictions
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Convert arrays to lists
+            forecast_dates = next_hour_timestamps.astype(str).tolist()
+            forecast_values = arrayForecast.tolist()
+
+            # Create JSON response
+            response_data = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_data)
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+    
+    def predictGBUV():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Extract data from the response
+            data = response.json()
+            tempData = [float(entry['field5']) for entry in data['feeds']]
+            tempTime = [entry['created_at'] for entry in data['feeds']]
+
+            # Convert time to datetime
+            datetimeTemp = pd.to_datetime(tempTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_gb = GradientBoostingRegressor(**p_gb)
+            model_gb.fit(X, y)
+
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            predicted_counts = model_gb.predict(next_hour_features)
+
+            # Round predictions
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Convert arrays to lists
+            forecast_dates = next_hour_timestamps.astype(str).tolist()
+            forecast_values = arrayForecast.tolist()
+
+            # Create JSON response
+            response_data = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_data)
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+    
+    def predictGBPM():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            # Extract data from the response
+            data = response.json()
+            tempData = [float(entry['field6']) for entry in data['feeds']]
+            tempTime = [entry['created_at'] for entry in data['feeds']]
+
+            # Convert time to datetime
+            datetimeTemp = pd.to_datetime(tempTime)
+
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            model_gb = GradientBoostingRegressor(**p_gb)
+            model_gb.fit(X, y)
+
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            predicted_counts = model_gb.predict(next_hour_features)
+
+            # Round predictions
+            arrayForecast = np.around(predicted_counts, decimals=8)
+
+            # Convert arrays to lists
+            forecast_dates = next_hour_timestamps.astype(str).tolist()
+            forecast_values = arrayForecast.tolist()
+
+            # Create JSON response
+            response_data = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_data)
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    # ---XGB---
+
+    def predictXGBTemp():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                # Extract data from the response
+                data = response.json()
+                tempData = [float(entry['field1']) for entry in data['feeds']]
+                tempTime = [entry['created_at'] for entry in data['feeds']]
+
+                # Convert time to datetime
+                datetimeTemp = pd.to_datetime(tempTime)
+
+                dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+                dataset = dataset.set_index('ds')
+                dataset = dataset.resample('5T').ffill()
+                dataset = dataset.dropna()
+                dataset = dataset.iloc[1:]
+                dataset['time'] = np.arange(len(dataset))
+
+                X = dataset[['time']]
+                y = dataset['y']
+
+                model_gb = XGBRegressor(**p_gb)
+                model_gb.fit(X, y)
+
+                last_timestamp = dataset.index[-1]
+                next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+                next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+                next_hour_features.set_index('date', inplace=True)
+                next_hour_features['time'] = np.arange(len(next_hour_features))
+
+                predicted_counts = model_gb.predict(next_hour_features)
+
+                # Round predictions
+                arrayForecast = np.around(predicted_counts, decimals=8)
+
+                # Convert arrays to lists
+                forecast_dates = next_hour_timestamps.astype(str).tolist()
+                forecast_values = arrayForecast.tolist()
+
+                # Create JSON response
+                response_data = {
+                    "forecast_dates": forecast_dates,
+                    "forecast_values": forecast_values
+                }
+
+                return jsonify(response_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+
+    def predictXGBHumi():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                # Extract data from the response
+                data = response.json()
+                tempData = [float(entry['field2']) for entry in data['feeds']]
+                tempTime = [entry['created_at'] for entry in data['feeds']]
+
+                # Convert time to datetime
+                datetimeTemp = pd.to_datetime(tempTime)
+
+                dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+                dataset = dataset.set_index('ds')
+                dataset = dataset.resample('5T').ffill()
+                dataset = dataset.dropna()
+                dataset = dataset.iloc[1:]
+                dataset['time'] = np.arange(len(dataset))
+
+                X = dataset[['time']]
+                y = dataset['y']
+
+                model_gb = XGBRegressor(**p_gb)
+                model_gb.fit(X, y)
+
+                last_timestamp = dataset.index[-1]
+                next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+                next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+                next_hour_features.set_index('date', inplace=True)
+                next_hour_features['time'] = np.arange(len(next_hour_features))
+
+                predicted_counts = model_gb.predict(next_hour_features)
+
+                # Round predictions
+                arrayForecast = np.around(predicted_counts, decimals=8)
+
+                # Convert arrays to lists
+                forecast_dates = next_hour_timestamps.astype(str).tolist()
+                forecast_values = arrayForecast.tolist()
+
+                # Create JSON response
+                response_data = {
+                    "forecast_dates": forecast_dates,
+                    "forecast_values": forecast_values
+                }
+
+                return jsonify(response_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    def predictXGBCO2():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                # Extract data from the response
+                data = response.json()
+                tempData = [float(entry['field3']) for entry in data['feeds']]
+                tempTime = [entry['created_at'] for entry in data['feeds']]
+
+                # Convert time to datetime
+                datetimeTemp = pd.to_datetime(tempTime)
+
+                dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+                dataset = dataset.set_index('ds')
+                dataset = dataset.resample('5T').ffill()
+                dataset = dataset.dropna()
+                dataset = dataset.iloc[1:]
+                dataset['time'] = np.arange(len(dataset))
+
+                X = dataset[['time']]
+                y = dataset['y']
+
+                model_gb = XGBRegressor(**p_gb)
+                model_gb.fit(X, y)
+
+                last_timestamp = dataset.index[-1]
+                next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+                next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+                next_hour_features.set_index('date', inplace=True)
+                next_hour_features['time'] = np.arange(len(next_hour_features))
+
+                predicted_counts = model_gb.predict(next_hour_features)
+
+                # Round predictions
+                arrayForecast = np.around(predicted_counts, decimals=8)
+
+                # Convert arrays to lists
+                forecast_dates = next_hour_timestamps.astype(str).tolist()
+                forecast_values = arrayForecast.tolist()
+
+                # Create JSON response
+                response_data = {
+                    "forecast_dates": forecast_dates,
+                    "forecast_values": forecast_values
+                }
+
+                return jsonify(response_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+    
+    def predictXGBCO():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                # Extract data from the response
+                data = response.json()
+                tempData = [float(entry['field4']) for entry in data['feeds']]
+                tempTime = [entry['created_at'] for entry in data['feeds']]
+
+                # Convert time to datetime
+                datetimeTemp = pd.to_datetime(tempTime)
+
+                dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+                dataset = dataset.set_index('ds')
+                dataset = dataset.resample('5T').ffill()
+                dataset = dataset.dropna()
+                dataset = dataset.iloc[1:]
+                dataset['time'] = np.arange(len(dataset))
+
+                X = dataset[['time']]
+                y = dataset['y']
+
+                model_gb = XGBRegressor(**p_gb)
+                model_gb.fit(X, y)
+
+                last_timestamp = dataset.index[-1]
+                next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+                next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+                next_hour_features.set_index('date', inplace=True)
+                next_hour_features['time'] = np.arange(len(next_hour_features))
+
+                predicted_counts = model_gb.predict(next_hour_features)
+
+                # Round predictions
+                arrayForecast = np.around(predicted_counts, decimals=8)
+
+                # Convert arrays to lists
+                forecast_dates = next_hour_timestamps.astype(str).tolist()
+                forecast_values = arrayForecast.tolist()
+
+                # Create JSON response
+                response_data = {
+                    "forecast_dates": forecast_dates,
+                    "forecast_values": forecast_values
+                }
+
+                return jsonify(response_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    
+    def predictXGBUV():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                # Extract data from the response
+                data = response.json()
+                tempData = [float(entry['field5']) for entry in data['feeds']]
+                tempTime = [entry['created_at'] for entry in data['feeds']]
+
+                # Convert time to datetime
+                datetimeTemp = pd.to_datetime(tempTime)
+
+                dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+                dataset = dataset.set_index('ds')
+                dataset = dataset.resample('5T').ffill()
+                dataset = dataset.dropna()
+                dataset = dataset.iloc[1:]
+                dataset['time'] = np.arange(len(dataset))
+
+                X = dataset[['time']]
+                y = dataset['y']
+
+                model_gb = XGBRegressor(**p_gb)
+                model_gb.fit(X, y)
+
+                last_timestamp = dataset.index[-1]
+                next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+                next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+                next_hour_features.set_index('date', inplace=True)
+                next_hour_features['time'] = np.arange(len(next_hour_features))
+
+                predicted_counts = model_gb.predict(next_hour_features)
+
+                # Round predictions
+                arrayForecast = np.around(predicted_counts, decimals=8)
+
+                # Convert arrays to lists
+                forecast_dates = next_hour_timestamps.astype(str).tolist()
+                forecast_values = arrayForecast.tolist()
+
+                # Create JSON response
+                response_data = {
+                    "forecast_dates": forecast_dates,
+                    "forecast_values": forecast_values
+                }
+
+                return jsonify(response_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+        
+    
+    def predictXGBPM():
+        # Define the URL for GET request
+        url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+
+        # Make a GET request to the API
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            try:
+                # Extract data from the response
+                data = response.json()
+                tempData = [float(entry['field6']) for entry in data['feeds']]
+                tempTime = [entry['created_at'] for entry in data['feeds']]
+
+                # Convert time to datetime
+                datetimeTemp = pd.to_datetime(tempTime)
+
+                dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+                dataset = dataset.set_index('ds')
+                dataset = dataset.resample('5T').ffill()
+                dataset = dataset.dropna()
+                dataset = dataset.iloc[1:]
+                dataset['time'] = np.arange(len(dataset))
+
+                X = dataset[['time']]
+                y = dataset['y']
+
+                model_gb = XGBRegressor(**p_gb)
+                model_gb.fit(X, y)
+
+                last_timestamp = dataset.index[-1]
+                next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+                next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+                next_hour_features.set_index('date', inplace=True)
+                next_hour_features['time'] = np.arange(len(next_hour_features))
+
+                predicted_counts = model_gb.predict(next_hour_features)
+
+                # Round predictions
+                arrayForecast = np.around(predicted_counts, decimals=8)
+
+                # Convert arrays to lists
+                forecast_dates = next_hour_timestamps.astype(str).tolist()
+                forecast_values = arrayForecast.tolist()
+
+                # Create JSON response
+                response_data = {
+                    "forecast_dates": forecast_dates,
+                    "forecast_values": forecast_values
+                }
+
+                return jsonify(response_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        else:
+            # If the GET request fails, return an error message
+            return jsonify({"error": "Failed to retrieve data from the API"}), 500
+    
+#--------RF----------------
+    def predictRFTemp():
+        try:
+            # Make GET request to retrieve data from the specified URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data for forecasting
+            timestamps = []
+            values = []
+            for entry in data['feeds']:
+                timestamps.append(entry['created_at'])
+                values.append(float(entry['field1']))
+
+            # Create pandas DataFrame
+            dataset = pd.DataFrame({'ds': timestamps, 'y': values})
+            dataset['ds'] = pd.to_datetime(dataset['ds'])
+
+            # Resample and preprocess the data (similar to previous code)
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            # Train the model (similar to previous code)
+            model_rf = RandomForestRegressor(**p_rf)
+            model_rf.fit(X, y)
+
+            # Generate future timestamps for forecasting
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Make predictions
+            predicted_counts = model_rf.predict(next_hour_features)
+
+            # Format predictions as required
+            forecast_dates = [str(date) for date in next_hour_timestamps]
+            forecast_values = predicted_counts.tolist()
+
+            # Construct JSON response
+            response_json = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_json)
+        except Exception as e:
+            print(e)
+    
+    def predictRFHumi():
+        try:
+            # Make GET request to retrieve data from the specified URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data for forecasting
+            timestamps = []
+            values = []
+            for entry in data['feeds']:
+                timestamps.append(entry['created_at'])
+                values.append(float(entry['field2']))
+
+            # Create pandas DataFrame
+            dataset = pd.DataFrame({'ds': timestamps, 'y': values})
+            dataset['ds'] = pd.to_datetime(dataset['ds'])
+
+            # Resample and preprocess the data (similar to previous code)
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            # Train the model (similar to previous code)
+            model_rf = RandomForestRegressor(**p_rf)
+            model_rf.fit(X, y)
+
+            # Generate future timestamps for forecasting
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Make predictions
+            predicted_counts = model_rf.predict(next_hour_features)
+
+            # Format predictions as required
+            forecast_dates = [str(date) for date in next_hour_timestamps]
+            forecast_values = predicted_counts.tolist()
+
+            # Construct JSON response
+            response_json = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_json)
+        except Exception as e:
+            print(e)
+    
+    def predictRFCO2():
+        try:
+            # Make GET request to retrieve data from the specified URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data for forecasting
+            timestamps = []
+            values = []
+            for entry in data['feeds']:
+                timestamps.append(entry['created_at'])
+                values.append(float(entry['field3']))
+
+            # Create pandas DataFrame
+            dataset = pd.DataFrame({'ds': timestamps, 'y': values})
+            dataset['ds'] = pd.to_datetime(dataset['ds'])
+
+            # Resample and preprocess the data (similar to previous code)
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            # Train the model (similar to previous code)
+            model_rf = RandomForestRegressor(**p_rf)
+            model_rf.fit(X, y)
+
+            # Generate future timestamps for forecasting
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Make predictions
+            predicted_counts = model_rf.predict(next_hour_features)
+
+            # Format predictions as required
+            forecast_dates = [str(date) for date in next_hour_timestamps]
+            forecast_values = predicted_counts.tolist()
+
+            # Construct JSON response
+            response_json = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_json)
+        except Exception as e:
+            print(e)
+    
+    def predictRFCO():
+        try:
+            # Make GET request to retrieve data from the specified URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data for forecasting
+            timestamps = []
+            values = []
+            for entry in data['feeds']:
+                timestamps.append(entry['created_at'])
+                values.append(float(entry['field3']))
+
+            # Create pandas DataFrame
+            dataset = pd.DataFrame({'ds': timestamps, 'y': values})
+            dataset['ds'] = pd.to_datetime(dataset['ds'])
+
+            # Resample and preprocess the data (similar to previous code)
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            # Train the model (similar to previous code)
+            model_rf = RandomForestRegressor(**p_rf)
+            model_rf.fit(X, y)
+
+            # Generate future timestamps for forecasting
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Make predictions
+            predicted_counts = model_rf.predict(next_hour_features)
+
+            # Format predictions as required
+            forecast_dates = [str(date) for date in next_hour_timestamps]
+            forecast_values = predicted_counts.tolist()
+
+            # Construct JSON response
+            response_json = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_json)
+        except Exception as e:
+            print(e)
+    
+    def predictRFUV():
+        try:
+            # Make GET request to retrieve data from the specified URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data for forecasting
+            timestamps = []
+            values = []
+            for entry in data['feeds']:
+                timestamps.append(entry['created_at'])
+                values.append(float(entry['field5']))
+
+            # Create pandas DataFrame
+            dataset = pd.DataFrame({'ds': timestamps, 'y': values})
+            dataset['ds'] = pd.to_datetime(dataset['ds'])
+
+            # Resample and preprocess the data (similar to previous code)
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            # Train the model (similar to previous code)
+            model_rf = RandomForestRegressor(**p_rf)
+            model_rf.fit(X, y)
+
+            # Generate future timestamps for forecasting
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Make predictions
+            predicted_counts = model_rf.predict(next_hour_features)
+
+            # Format predictions as required
+            forecast_dates = [str(date) for date in next_hour_timestamps]
+            forecast_values = predicted_counts.tolist()
+
+            # Construct JSON response
+            response_json = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_json)
+        except Exception as e:
+            print(e)
+
+    def predictRFPM():
+        try:
+            # Make GET request to retrieve data from the specified URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data for forecasting
+            timestamps = []
+            values = []
+            for entry in data['feeds']:
+                timestamps.append(entry['created_at'])
+                values.append(float(entry['field6']))
+
+            # Create pandas DataFrame
+            dataset = pd.DataFrame({'ds': timestamps, 'y': values})
+            dataset['ds'] = pd.to_datetime(dataset['ds'])
+
+            # Resample and preprocess the data (similar to previous code)
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset['time'] = np.arange(len(dataset))
+
+            X = dataset[['time']]
+            y = dataset['y']
+
+            # Train the model (similar to previous code)
+            model_rf = RandomForestRegressor(**p_rf)
+            model_rf.fit(X, y)
+
+            # Generate future timestamps for forecasting
+            last_timestamp = dataset.index[-1]
+            next_hour_timestamps = pd.date_range(last_timestamp, periods=12, freq='5T')
+            next_hour_features = pd.DataFrame({'date': next_hour_timestamps})
+            next_hour_features.set_index('date', inplace=True)
+            next_hour_features['time'] = np.arange(len(next_hour_features))
+
+            # Make predictions
+            predicted_counts = model_rf.predict(next_hour_features)
+
+            # Format predictions as required
+            forecast_dates = [str(date) for date in next_hour_timestamps]
+            forecast_values = predicted_counts.tolist()
+
+            # Construct JSON response
+            response_json = {
+                "forecast_dates": forecast_dates,
+                "forecast_values": forecast_values
+            }
+
+            return jsonify(response_json)
+        except Exception as e:
+            print(e)
+            
+            
+            
+            
