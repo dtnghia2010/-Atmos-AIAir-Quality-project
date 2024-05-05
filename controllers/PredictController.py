@@ -8,9 +8,9 @@ from xgboost import XGBRegressor
 from sklearn.linear_model import LinearRegression 
 from prophet import Prophet
 from sklearn.preprocessing import MinMaxScaler
-from keras.models import model_from_json
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
+# from keras.models import model_from_json
+# from keras.models import Sequential
+# from keras.layers import LSTM, Dense
 import requests
 
 import warnings
