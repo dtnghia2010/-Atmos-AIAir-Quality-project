@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+numpy
+pandas
+prophet
+keras
+scikit-learn==1.2.2
+requests
+tensorflow==2.15.0

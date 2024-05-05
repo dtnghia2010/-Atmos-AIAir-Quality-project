@@ -1,5 +1,4 @@
 import json
-from bson import json_util
 from flask import jsonify
 import requests
 import csv
@@ -9,34 +8,34 @@ import os
 
 class TestController:
     def getSampleData():
-            channel_id = "2465663"
-            api_key = "MP0MEWPWMADVCPMG"
-            results = "20"
+        channel_id = "2465663"
+        api_key = "MP0MEWPWMADVCPMG"
+        results = "20"
 
-            url = f"https://api.thingspeak.com/channels/{channel_id}/feeds.json?api_key={api_key}&results={results}"
-            
-            response = requests.get(url)
-            data = response.json()['feeds']
+        url = f"https://api.thingspeak.com/channels/{channel_id}/feeds.json?api_key={api_key}&results={results}"
+        
+        response = requests.get(url)
+        data = response.json()['feeds']
 
-            # Prepare sample data
-            sample_data = []
-            for entry in data:
-                created_time = datetime.strptime(entry['created_at'], '%Y-%m-%dT%H:%M:%SZ').timestamp()
-                sample_entry = {
-                    'createdTime': created_time,
-                    'Gas': entry['field3'],
-                    'CO': entry['field4'],
-                    'PM2.5': entry['field6'],
-                    'UV': entry['field5'],
-                    'Temperature': entry['field1'],
-                    'Humidity': entry['field2']
-                }
-                sample_data.append(sample_entry)
+        # Prepare sample data
+        sample_data = []
+        for entry in data:
+            created_time = datetime.strptime(entry['created_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d %H:%M:%S')
+            sample_entry = {
+                'createdTime': created_time,
+                'Gas': entry['field3'],
+                'CO': entry['field4'],
+                'PM2.5': entry['field6'],
+                'UV': entry['field5'],
+                'Temperature': entry['field1'],
+                'Humidity': entry['field2']
+            }
+            sample_data.append(sample_entry)
 
-            return jsonify({
-                'message': 'Successfully fetched sample data.',
-                'data': sample_data
-            })
+        return jsonify({
+            'message': 'Successfully fetched sample data.',
+            'data': sample_data
+        })
   
     def fetchOfflineData():
             def fetchData(field):
@@ -215,10 +214,11 @@ class TestController:
         aqi_score = map_aqi_score(overall_aqi)
         
         return {
-            'PM2.5 AQI': pm25_aqi, 
-            'CO AQI': co_aqi, 
-            'Overall AQI': overall_aqi,
-            'Air Quality Category': category,
-            'AQI Range': aqi_range,
-            'AQI Score': aqi_score
+            'pM25_aqi': pm25_aqi, 
+            'co_aqi': co_aqi, 
+            'overall_aqi': overall_aqi,
+            'air_quality_category': category,
+            'aqi_range': aqi_range,
+            'aqi_score': aqi_score
         }
+    
