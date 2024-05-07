@@ -109,81 +109,107 @@ class TestController:
     def calculate_aqi_from_csv():
         def calculate_aqi(pm25, co):
             # AQI breakpoints and corresponding pollutant concentration ranges
-            pm25_breakpoints = [0, 30.4, 60.4, 90.4, 120.4, 250.4, 350.4]
-            pm25_concentration_ranges = [(0, 30.4), (30.5, 60.4), (60.5, 90.4), (90.5, 120.4), (120.5, 250.4), (250.5, 350.4), (350.5, 500.4)]
+            pm25_breakpoints = [0, 12.0, 35.4, 55.4, 150.4, 250.4, 500.4]
+            pm25_concentration_ranges = [(0, 12.0), (12.1, 35.4), (35.5, 55.4), (55.5, 150.4), (150.5, 250.4), (250.5, 500.4)]
 
-            co_breakpoints = [0, 1.0, 2.0, 10.0, 17.0, 34.0, 50.4]
-            co_concentration_ranges = [(0, 1.0), (1.1, 2.0), (2.1, 10.0), (10.1, 17.0), (17.1, 34.0), (34.1, 50.4), (50.5, 60)]
+            co_breakpoints = [0, 4.4, 9.4, 12.4, 15.4, 30.4, 50.4]
+            co_concentration_ranges = [(0, 4.4), (4.5, 9.4), (9.5, 12.4), (12.5, 15.4), (15.5, 30.4), (30.5, 50.4)]
 
             # Calculate AQI for PM2.5
             def calculate_pm25_aqi(pm25):
+                # AQI calculation logic for PM2.5 in μg/m³
+                if 0 <= pm25 <= 12.0:
+                    aqi_low, aqi_high = 0, 50
+                elif 12.1 <= pm25 <= 35.4:
+                    aqi_low, aqi_high = 51, 100
+                elif 35.5 <= pm25 <= 55.4:
+                    aqi_low, aqi_high = 101, 150
+                elif 55.5 <= pm25 <= 150.4:
+                    aqi_low, aqi_high = 151, 200
+                elif 150.5 <= pm25 <= 250.4:
+                    aqi_low, aqi_high = 201, 300
+                else:
+                    aqi_low, aqi_high = 301, 500
+                
+                # Find the corresponding PM2.5 concentration range
                 for i in range(len(pm25_breakpoints) - 1):
                     if pm25_breakpoints[i] <= pm25 <= pm25_breakpoints[i + 1]:
                         bp_low, bp_high = pm25_concentration_ranges[i]
-                        aqi_low, aqi_high = pm25_breakpoints[i], pm25_breakpoints[i + 1]
                         aqi = ((aqi_high - aqi_low) / (bp_high - bp_low)) * (pm25 - bp_low) + aqi_low
                         return round(aqi)
 
+
             # Calculate AQI for CO
             def calculate_co_aqi(co):
-                molecular_weight_co = 28.01  # g/mol
-                co_mg_per_m3 = (co * molecular_weight_co) / 24.45
-
-                # AQI calculation logic for CO in mg/m³
+                # AQI calculation logic for CO in ppm
+                if 0 <= co <= 4.4:
+                    aqi_low, aqi_high = 0, 50
+                elif 4.5 <= co <= 9.4:
+                    aqi_low, aqi_high = 51, 100
+                elif 9.5 <= co <= 12.4:
+                    aqi_low, aqi_high = 101, 150
+                elif 12.5 <= co <= 15.4:
+                    aqi_low, aqi_high = 151, 200
+                elif 15.5 <= co <= 30.4:
+                    aqi_low, aqi_high = 201, 300
+                else:
+                    aqi_low, aqi_high = 301, 500
+                
+                # Find the corresponding CO concentration range
                 for i in range(len(co_breakpoints) - 1):
-                    if co_breakpoints[i] <= co_mg_per_m3 <= co_breakpoints[i + 1]:
+                    if co_breakpoints[i] <= co <= co_breakpoints[i + 1]:
                         bp_low, bp_high = co_concentration_ranges[i]
-                        aqi_low, aqi_high = co_breakpoints[i], co_breakpoints[i + 1]
-                        aqi = ((aqi_high - aqi_low) / (bp_high - bp_low)) * (co_mg_per_m3 - bp_low) + aqi_low
+                        aqi = ((aqi_high - aqi_low) / (bp_high - bp_low)) * (co - bp_low) + aqi_low
                         return round(aqi)
+
 
             pm25_aqi = calculate_pm25_aqi(pm25)
             co_aqi = calculate_co_aqi(co)
 
             return pm25_aqi, co_aqi
-    
+
         def map_aqi_range_and_category(overall_aqi, pollutant):
             if pollutant == "CO":
-                if overall_aqi <= 50.4:
+                if overall_aqi <= 50:
                     return "Good", "0-50"
-                elif overall_aqi <= 100.4:
-                    return "Satisfactory", "51-100"
-                elif overall_aqi <= 200.4:
-                    return "Moderately Polluted", "101-200"
-                elif overall_aqi <= 300.4:
-                    return "Poor", "201-300"
-                elif overall_aqi <= 400.4:
-                    return "Very Poor", "301-400"
+                elif overall_aqi <= 100:
+                    return "Moderate", "51-100"
+                elif overall_aqi <= 150:
+                    return "Unhealthy for Sensitive Groups", "101-150"
+                elif overall_aqi <= 200:
+                    return "Unhealthy", "151-200"
+                elif overall_aqi <= 300:
+                    return "Very Unhealthy", "201-300"
                 else:
-                    return "Severe", "401+"
+                    return "Hazardous", "301-500"
             else:
                 # Assume PM2.5 AQI range
-                if overall_aqi <= 50.4:
+                if overall_aqi <= 50:
                     return "Good", "0-50"
-                elif overall_aqi <= 100.4:
-                    return "Satisfactory", "51-100"
-                elif overall_aqi <= 200.4:
-                    return "Moderately Polluted", "101-200"
-                elif overall_aqi <= 300.4:
-                    return "Poor", "201-300"
-                elif overall_aqi <= 400.4:
-                    return "Very Poor", "301-400"
+                elif overall_aqi <= 100:
+                    return "Moderate", "51-100"
+                elif overall_aqi <= 150:
+                    return "Unhealthy for Sensitive Groups", "101-150"
+                elif overall_aqi <= 200:
+                    return "Unhealthy", "151-200"
+                elif overall_aqi <= 300:
+                    return "Very Unhealthy", "201-300"
                 else:
-                    return "Severe", "401+"
+                    return "Hazardous", "301-500"
 
         def map_aqi_score(aqi):
-            if aqi < 0 or aqi > 500:
+            if aqi is None or aqi < 0 or aqi > 500:
                 return None
-            
+
             # Map AQI score using the equation y = (-x/50) + 10
             aqi_score = (-aqi / 50) + 10
-            
-            # Round down to the nearest integer
-            rounded_aqi_score = int(aqi_score)
+
+            # Round to one decimal place
+            rounded_aqi_score = round(aqi_score, 1)
             return rounded_aqi_score
         
-        channel_id = '2465663'  # Replace with your ThingSpeak channel ID
-        read_api_key = 'MP0MEWPWMADVCPMG'  # Replace with your ThingSpeak read API key
+        channel_id = '2465663'
+        read_api_key = 'MP0MEWPWMADVCPMG'
         results = requests.get(f'https://api.thingspeak.com/channels/{channel_id}/feeds.csv', params={'api_key': read_api_key})
         if results.status_code != 200:
             return "Failed to fetch data from ThingSpeak."
@@ -202,23 +228,23 @@ class TestController:
 
         pm25_avg = sum(pm25_data) / len(pm25_data) if pm25_data else None
         co_avg = sum(co_data) / len(co_data) if co_data else None
+        print(pm25_avg, co_avg)
 
         pm25_aqi, co_aqi = calculate_aqi(pm25_avg, co_avg)
         
-        overall_aqi = co_aqi if co_aqi is not None else pm25_aqi if pm25_aqi is not None else None
+        overall_aqi = max(co_aqi, pm25_aqi) if co_aqi is not None and pm25_aqi is not None else co_aqi if co_aqi is not None else pm25_aqi if pm25_aqi is not None else None
         
         if overall_aqi is None:
             return {'error': 'Failed to calculate AQI for both pollutants.'}
         
         category, aqi_range = map_aqi_range_and_category(overall_aqi, "CO" if co_aqi is not None else "PM2.5")
         aqi_score = map_aqi_score(overall_aqi)
-        
+
         return {
-            'pM25_aqi': pm25_aqi, 
-            'co_aqi': co_aqi, 
+            'pM25_aqi': pm25_aqi,
+            'co_aqi': co_aqi,
             'overall_aqi': overall_aqi,
             'air_quality_category': category,
             'aqi_range': aqi_range,
             'aqi_score': aqi_score
         }
-    

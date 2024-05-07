@@ -35,6 +35,85 @@ server_dir = os.path.dirname(os.path.dirname(script_dir))
 
 class PredictController:
     '''
+    def predictTempLSTM():
+        try:
+            # Get data from URL
+            url = 'https://api.thingspeak.com/channels/2465663/feeds.json?results=100'
+            response = requests.get(url)
+            data = response.json()
+
+            # Extract relevant data from the response
+            feeds = data['feeds']
+            tempTime = [feed['created_at'] for feed in feeds]
+            tempData = [float(feed['field1']) for feed in feeds]
+
+            # Create DataFrame from extracted data
+            datetimeTemp = pd.to_datetime(tempTime)
+            dataset = pd.DataFrame({'ds': datetimeTemp, 'y': tempData})
+            dataset = dataset.set_index('ds')
+            dataset = dataset.resample('5T').ffill()
+            dataset = dataset.dropna()
+            dataset = dataset.iloc[1:]
+            dataset.reset_index(inplace=True)
+
+            # Scale the data to be between 0 and 1
+            scaler = MinMaxScaler()
+            scaled_temp = scaler.fit_transform(dataset[['y']])
+
+            # Ensure the sequence length matches the model's input (12 time steps)
+            sequence_length = 12
+
+            # Pad or truncate the sequence to match the model's input sequence length
+            if len(scaled_temp) < sequence_length:
+                padded_temp = np.pad(scaled_temp, ((sequence_length - len(scaled_temp), 0), (0, 0)), mode='constant')
+            else:
+                padded_temp = scaled_temp[-sequence_length:]
+
+            # Reshape the data to be suitable for LSTM (samples, time steps, features)
+            input_data = padded_temp.reshape((1, 1, sequence_length))
+
+            # Load model architecture from JSON file
+            temp_lstm_json = os.path.join(server_dir, 'server\datasets\models\lstm\_test-lstm.json')
+            temp_lstm_weight = os.path.join(server_dir, 'server\datasets\models\lstm\_test_lstm_weight.h5')
+            with open(temp_lstm_json, 'r') as json_file:
+                loaded_model_json = json_file.read()
+
+            # Load model json
+            loaded_model = model_from_json(loaded_model_json)
+
+            # Load model weights
+            loaded_model.load_weights(temp_lstm_weight)
+
+            if os.path.exists(temp_lstm_weight) and os.path.exists(temp_lstm_json):
+                print("--------model loaded---------")
+                predictions = loaded_model.predict(input_data)
+
+                # Inverse transform the predictions to get original scale
+                predictions_inv = scaler.inverse_transform(predictions)[0]
+
+                # Get data from predictions
+                arrayForecast = np.array(predictions_inv)
+
+                # Round up to 2 decimal
+                arrayForecast = np.around(arrayForecast, decimals=4)
+
+                # Get the date and time of the forecast
+                forecast_dates = pd.date_range(datetimeTemp[-1], periods=12, freq='5T')
+
+                # Prepare JSON response with forecast and forecast dates
+                response_data = {'forecast_dates': forecast_dates.strftime('%Y-%m-%d %H:%M:%S').tolist(),
+                                'forecast_values': arrayForecast.tolist()}
+
+            else:
+                print(f"File not found: {temp_lstm_weight}")
+                response_data = {'error': 'Model not found'}
+
+        except Exception as e:
+            print(e)
+            response_data = {'error': str(e)}
+
+        return jsonify(response_data)
+        
     def predictTempProphetLSTM():
         try:
             # Fetch data from ThingSpeak
