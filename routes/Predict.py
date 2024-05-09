@@ -15,14 +15,15 @@ Predict.route('/prophet-uv', methods = ['GET','POST'])(PredictController.predict
 Predict.route('/prophet-pm', methods = ['GET','POST'])(PredictController.predictPMProphet)
 
 # lstm
-'''
+
 Predict.route('/lstm-temp', methods = ['GET'])(PredictController.predictTempLSTM)
+
 Predict.route('/lstm-humi', methods = ['GET'])(PredictController.predictHumiLSTM)
 Predict.route('/lstm-co2', methods = ['GET'])(PredictController.predictCO2LSTM)
 Predict.route('/lstm-co', methods = ['GET'])(PredictController.predictCOLSTM)
 Predict.route('/lstm-uv', methods = ['GET'])(PredictController.predictUVLSTM)
 Predict.route('/lstm-pm', methods = ['GET'])(PredictController.predictPMLSTM)
-'''
+
 
 # LR
 Predict.route('/lr-temp', methods = ['GET'])(PredictController.predictLRTemp)
@@ -56,5 +57,5 @@ Predict.route('/rf-co', methods = ['GET'])(PredictController.predictRFCO)
 Predict.route('/rf-uv', methods = ['GET'])(PredictController.predictRFUV)
 Predict.route('/rf-pm', methods = ['GET'])(PredictController.predictRFPM)
 
-# Predict.route('/prophet-lstm', methods = ['GET'])(PredictController.predictTempProphetLSTM)
+Predict.route('/prophet-lstm', methods = ['GET'])(PredictController.predictTempProphetLSTM)
 
