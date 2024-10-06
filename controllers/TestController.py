@@ -5,37 +5,65 @@ import csv
 from datetime import datetime, timedelta
 import pandas as pd
 import os
+import time
 
 class TestController:
     def getSampleData():
-        channel_id = "2465663"
-        api_key = "MP0MEWPWMADVCPMG"
-        results = "20"
+        token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiODkwODJiMDAtNDAyYi0xMWVmLWEwZWEtZDkzN2RlNDlmOTFjIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MGMwMjE3ZC1iYTQ0LTQwMjUtOWE3NS0wOWUwZjQ1ODA1YTIiLCJleHAiOjE3MjgyMDgyMTMsImlzcyI6InRoaW5nc2JvYXJkLmlvIiwiaWF0IjoxNzI4MTk5MjEzLCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiODY4ZGI1MjAtNDAyYi0xMWVmLWEwZWEtZDkzN2RlNDlmOTFjIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.DiUlmNlmVugiffRAAhFfxtqukuxwyw-2N6AZnx80o4hZyaZwGOGL-waASgReC_yYgwVM_7XHgbFlkJvlcYtBZg"
+        fields = ["temperature", "humidity", "dust", "mq135", "mq3", "uv"]
+        deviceID = "bf64aa90-4033-11ef-ac72-df8184d14926"
+        limit = 20
+        sort = "DESC"
+        host = "192.168.31.243:8080"
 
-        url = f"https://api.thingspeak.com/channels/{channel_id}/feeds.json?api_key={api_key}&results={results}"
-        
-        response = requests.get(url)
-        data = response.json()['feeds']
+        # Calculate the current time as endTs
+        end = int(time.time() * 1000)  # current time in milliseconds
+        start = 0  # starting from the oldest possible time
 
-        # Prepare sample data
-        sample_data = []
-        for entry in data:
-            created_time = datetime.strptime(entry['created_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%Y-%m-%d %H:%M:%S')
-            sample_entry = {
-                'createdTime': created_time,
-                'Gas': entry['field3'],
-                'CO': entry['field4'],
-                'PM2.5': entry['field6'],
-                'UV': entry['field5'],
-                'Temperature': entry['field1'],
-                'Humidity': entry['field2']
-            }
-            sample_data.append(sample_entry)
+        url = f"http://{host}/api/plugins/telemetry/DEVICE/{deviceID}/values/timeseries?keys={','.join(fields)}&startTs={start}&endTs={end}&limit={limit}&sortOrder={sort}"
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': f"Bearer {token}"
+        }
+        response = requests.get(url, headers=headers)
 
-        return jsonify({
-            'message': 'Successfully fetched sample data.',
-            'data': sample_data
-        })
+        if response.status_code != 200:
+            return jsonify({"error": "Failed to fetch data"}), response.status_code
+
+        data = response.json()
+
+        # Check if data is a dictionary with lists as values
+        if not isinstance(data, dict):
+            return jsonify({"error": "Unexpected data format"}), 500
+
+        try:
+            # Create a structure that matches your expected output format
+            formatted_data = []
+
+            for i in range(limit):  # Limit to requested records
+                record = {}
+                
+                # Extract values from the fetched data (using 'nan' as placeholder if data is missing)
+                record["CO"] = str(data.get("mq135", [{}])[i].get("value", "nan"))
+                record["Gas"] = str(data.get("mq3", [{}])[i].get("value", "nan"))
+                record["Humidity"] = str(data.get("humidity", [{}])[i].get("value", "nan"))
+                record["PM2.5"] = str(data.get("dust", [{}])[i].get("value", "nan"))
+                record["Temperature"] = str(data.get("temperature", [{}])[i].get("value", "nan"))
+                record["UV"] = str(data.get("uv", [{}])[i].get("value", "nan"))
+
+                # Format the timestamp
+                timestamp = data.get("temperature", [{}])[i].get("ts", None)
+                if timestamp:
+                    record["createdTime"] = datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    record["createdTime"] = "Unknown"
+
+                formatted_data.append(record)
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+        return jsonify(formatted_data)
   
     def fetchOfflineData():
             def fetchData(field):
