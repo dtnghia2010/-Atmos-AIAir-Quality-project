@@ -2,7 +2,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="logo.png" alt="Logo" width="150" height="150">
+    <img src="logo.png" alt="Logo" width="250" height="200">
   </a>
 
   <h3 align="center">ATMOS project</h3>
