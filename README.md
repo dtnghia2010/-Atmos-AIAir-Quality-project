@@ -18,12 +18,10 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
 This project combines IoT and AI to monitor temperature factors in real-time and generate predictions based on collected data. The system is designed to provide insights on temperature trends, predict anomalies, and contribute to climate or environmental monitoring efforts.
 <p float="left">
-  <img src="product1.png" alt="First Image" width="45%"/>
-  <img src="product2.png" alt="Second Image" width="45%"/>
+  <img src="product1.jpg" alt="First Image" width="45%"/>
+  <img src="product2.jpg" alt="Second Image" width="45%"/>
 </p>
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
