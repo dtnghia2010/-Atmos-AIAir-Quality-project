@@ -4,12 +4,6 @@
   <a href="https://github.com/othneildrew/Best-README-Template">
     <img src="logo.png" alt="Logo" width="250" height="200">
   </a>
-
-  <h3 align="center">ATMOS project</h3>
-
-  <p align="center">
-    An IoT and AI transformation!
-  </p>
 </div>
 
 
